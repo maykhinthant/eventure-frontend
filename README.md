@@ -1,6 +1,4 @@
-<<<<<<< HEAD
 # eventure-frontend
-=======
 # Calendar Frontend (React + Vite + Tailwind) — Final
 
 This frontend is built to connect with your Spring Boot backend. It implements the following features (Google Calendar-style simplified):
@@ -49,4 +47,3 @@ VITE_API_BASE_URL=http://localhost:8080/api
 
 - The calendars list is local by default (so you can add calendars and colors in the UI). If you want calendars persisted server-side, I can add endpoints and sync logic.
 - If your backend uses different field names, tell me and I'll adapt the API wrappers (`src/api/calendar.js` and `src/api/auth.js`).
->>>>>>> c2ea279 (Frontend template)

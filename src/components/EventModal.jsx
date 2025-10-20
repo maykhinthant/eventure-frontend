@@ -1,10 +1,23 @@
 import React, { useEffect, useState } from 'react'
 
+function toDateTimeLocal(value){
+  if(!value) return ''
+  const date = value instanceof Date ? value : new Date(value)
+  if(Number.isNaN(date.getTime())) return ''
+  const shifted = new Date(date.getTime() - date.getTimezoneOffset() * 60000)
+  return shifted.toISOString().slice(0, 16)
+}
+
 export default function EventModal({ open, onClose, initial, onSave, onDelete, calendars=[] }){
   const [form, setForm] = useState({ title:'', description:'', start:'', end:'', calendarId: '', completed:false })
   useEffect(()=>{
-    if(initial) setForm({ title: initial.title || '', description: initial.description || '', start: initial.start || '', end: initial.end || '', calendarId: initial.calendarId || (calendars[0] && calendars[0].id) || '', completed: !!initial.completed })
-    else setForm({ title:'', description:'', start:'', end:'', calendarId: (calendars[0] && calendars[0].id) || '', completed:false })
+    if(initial){
+      const start = toDateTimeLocal(initial.start)
+      const end = toDateTimeLocal(initial.end) || start
+      setForm({ title: initial.title || '', description: initial.description || '', start, end, calendarId: initial.calendarId || (calendars[0] && calendars[0].id) || '', completed: !!initial.completed })
+    } else {
+      setForm({ title:'', description:'', start:'', end:'', calendarId: (calendars[0] && calendars[0].id) || '', completed:false })
+    }
   },[initial, open, calendars])
 
   if(!open) return null

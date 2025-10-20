@@ -22,7 +22,7 @@ export default function Login(){
     <div className="max-w-md mx-auto mt-12 bg-white p-6 rounded shadow">
       <h2 className="text-xl font-semibold mb-3">Login</h2>
       <form onSubmit={handleSubmit} className="space-y-3">
-        <input value={username} onChange={e=>setUsername(e.target.value)} className="w-full border p-2" placeholder="Username or email" required />
+        <input value={username} onChange={e=>setUsername(e.target.value)} className="w-full border p-2" placeholder="Username" autoComplete="username" required />
         <input value={password} onChange={e=>setPassword(e.target.value)} type="password" className="w-full border p-2" placeholder="Password" required />
         <button className="w-full bg-sky-600 text-white p-2 rounded">Login</button>
       </form>

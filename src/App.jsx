@@ -18,7 +18,7 @@ export default function App(){
   return (
     <div className="min-h-screen">
       <Navbar />
-      <div className="container mx-auto p-4">
+      <div className="w-full px-4">
         <Routes>
           <Route path="/" element={<Home/>} />
           <Route path="/login" element={<Login/>} />
