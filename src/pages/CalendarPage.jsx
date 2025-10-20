@@ -88,6 +88,7 @@ export default function CalendarPage(){
   const [editingCalendarId, setEditingCalendarId] = useState(null)
   const [calendarBusy, setCalendarBusy] = useState(false)
   const [eventsForList, setEventsForList] = useState([])
+  const [sidebarOpen, setSidebarOpen] = useState(true)
   const [currentDate, setCurrentDate] = useState(new Date())
   const [activeView, setActiveView] = useState('dayGridMonth')
   const [updatingEventId, setUpdatingEventId] = useState(null)
@@ -287,6 +288,10 @@ export default function CalendarPage(){
     }
   }, [])
 
+  const toggleSidebar = useCallback(() => {
+    setSidebarOpen(prev => !prev)
+  }, [])
+
   function handlePrev(){ calendarRef.current?.getApi()?.prev() }
   function handleNext(){ calendarRef.current?.getApi()?.next() }
   function handleToday(){ calendarRef.current?.getApi()?.today() }
@@ -301,134 +306,156 @@ export default function CalendarPage(){
   const displayTitle = format(currentDate, 'MMMM yyyy')
 
   return (
-    <div className="w-full bg-[#f5f6f9] px-4 py-6 md:px-8">
-      <div className="flex w-full flex-col gap-8 lg:flex-row lg:gap-0 lg:divide-x lg:divide-gray-200">
-        <aside className="flex flex-col gap-6 px-2 lg:w-56 xl:w-52 lg:px-0 lg:pr-8">
-          <div className="flex items-center gap-2">
-            {['#fca5a5', '#fdba74', '#fcd34d', '#bfdbfe', '#d8b4fe'].map(color => (
-              <span key={color} className="h-3 w-3 rounded-full" style={{ backgroundColor: color }} />
-            ))}
-          </div>
-          <div className="space-y-1">
-            <p className="text-xs uppercase tracking-[0.35em] text-gray-400">Schedule</p>
-            <h2 className="text-3xl font-semibold text-gray-900">{displayTitle}</h2>
-          </div>
-
-          <div>
-            <h3 className="mb-3 text-xs uppercase tracking-[0.35em] text-gray-400">Calendars</h3>
-            <ul className="space-y-3">
-              {calendars.map(c => (
-                <li key={c.id} className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: c.color || '#2563eb' }} />
-                    <span className="text-sm font-medium text-gray-800">{c.name}</span>
-                  </div>
-                  {token && (
-                    <button onClick={()=>startEditCalendar(c)} className="text-xs font-medium text-gray-400 transition hover:text-gray-900">Edit</button>
-                  )}
-                </li>
-              ))}
-            </ul>
-            {!calendars.length && (
-              <p className="text-sm text-gray-400">No calendars yet.</p>
-            )}
-          </div>
-
-          {token ? (
-            <div className="rounded-2xl bg-gray-50 p-4">
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-semibold text-gray-900">{editingCalendarId ? 'Edit calendar' : 'New calendar'}</p>
-                {editingCalendarId && (
-                  <button type="button" onClick={resetCalendarForm} className="text-xs text-gray-400 hover:text-gray-700">Reset</button>
-                )}
+    <div className="relative w-full bg-[#f5f6f9] pt-3 pb-6 pr-4 md:pt-4 md:pr-8">
+      {!sidebarOpen && (
+        <button
+          onClick={toggleSidebar}
+          className="absolute left-0 top-4 z-20 flex h-11 w-11 -translate-x-1/2 transform items-center justify-center rounded-full bg-white text-gray-500 shadow transition hover:text-gray-900 md:-translate-x-[60%]"
+          aria-label="Show sidebar"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+            <path d="M9.75 4.5L17.25 12 9.75 19.5" />
+          </svg>
+        </button>
+      )}
+      <div className="flex w-full flex-col gap-8 lg:flex-row">
+        <aside className={`${sidebarOpen ? 'flex' : 'hidden'} flex-col lg:w-64 xl:w-60`}>
+          <div className="space-y-5 px-6 pt-2">
+            <div className="flex items-start justify-between gap-4">
+              <div className="space-y-1">
+                <p className="text-xs uppercase tracking-[0.35em] text-gray-400">Schedule</p>
+                <h2 className="text-3xl font-semibold text-gray-900">{displayTitle}</h2>
               </div>
-              <form onSubmit={handleCalendarSubmit} className="mt-3 space-y-3">
-                <div className="space-y-1">
-                  <label className="text-xs uppercase tracking-wider text-gray-400">Name</label>
-                  <input
-                    className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-gray-800 focus:outline-none"
-                    value={calendarForm.name}
-                    onChange={e=>setCalendarForm({...calendarForm, name:e.target.value})}
-                    placeholder="Project planning"
-                    disabled={calendarBusy}
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs uppercase tracking-wider text-gray-400">Color</label>
-                  <input
-                    type="color"
-                    className="h-11 w-full cursor-pointer rounded-xl border border-gray-200"
-                    value={calendarForm.color}
-                    onChange={e=>setCalendarForm({...calendarForm, color:e.target.value})}
-                    disabled={calendarBusy}
-                  />
-                </div>
-                <button type="submit" className="w-full rounded-xl bg-gray-900 py-2 text-sm font-semibold text-white transition hover:bg-black disabled:opacity-50" disabled={calendarBusy}>
-                  {calendarBusy ? 'Saving…' : editingCalendarId ? 'Save changes' : 'Create calendar'}
-                </button>
-                {editingCalendarId && (
-                  <button type="button" onClick={()=>handleCalendarDelete(editingCalendarId)} className="w-full rounded-xl border border-gray-200 py-2 text-sm font-medium text-gray-600 transition hover:border-red-400 hover:text-red-500" disabled={calendarBusy}>
-                    Remove calendar
-                  </button>
-                )}
-              </form>
+              <button
+                type="button"
+                onClick={toggleSidebar}
+                className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border border-gray-200 text-gray-500 transition hover:border-gray-300 hover:text-gray-900"
+                aria-label="Hide sidebar"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+                  <path d="M14.25 19.5L6.75 12l7.5-7.5" />
+                </svg>
+              </button>
             </div>
-          ) : (
-            <p className="text-sm text-gray-400">Log in to manage your calendars.</p>
-          )}
 
-          <div>
-            <h3 className="mb-3 text-xs uppercase tracking-[0.35em] text-gray-400">Upcoming</h3>
-            {upcomingEvents.length ? (
-              <ul className="space-y-1.5">
-                {upcomingEvents.map(event => (
-                  <li
-                    key={event.id}
-                    className="border border-transparent px-2 py-1.5 shadow-sm"
-                    style={{ background: buildEventGradient(event.color || getCalendarColor(event.calendarId)) }}
-                  >
-                    <div className="flex items-center gap-1.5">
-                      <input
-                        type="checkbox"
-                        className="h-4 w-4 rounded border-gray-300"
-                        checked={event.completed}
-                        disabled={updatingEventId === event.id}
-                        onClick={(e)=>e.stopPropagation()}
-                        onChange={(e)=>{
-                          e.stopPropagation()
-                          const details = {
-                            id: event.id,
-                            title: event.title,
-                            start: event.start,
-                            end: event.end,
-                            calendarId: event.calendarId
-                          }
-                          persistEventCompletion(details, e.target.checked)
-                        }}
-                      />
-                      <button
-                        type="button"
-                        className="flex flex-1 flex-col text-left"
-                        onClick={(e)=>{
-                          e.stopPropagation()
-                          openUpcomingEvent(event)
-                        }}
-                      >
-                        <span className={`text-sm font-semibold text-gray-800 ${event.completed ? 'line-through opacity-60' : ''}`}>{event.title}</span>
-                        <span className="mt-1 text-[10px] uppercase tracking-normal text-gray-500">{format(event.startDate, 'EEE d MMM · hh:mm a')}</span>
-                      </button>
+            <div className="h-px bg-gray-100" />
+
+            <div className="space-y-4">
+              <h3 className="text-xs uppercase tracking-[0.35em] text-gray-400">Calendars</h3>
+              <ul className="space-y-3">
+                {calendars.map(c => (
+                  <li key={c.id} className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: c.color || '#2563eb' }} />
+                      <span className="text-sm font-medium text-gray-800">{c.name}</span>
                     </div>
+                    {token && (
+                      <button onClick={()=>startEditCalendar(c)} className="text-xs font-medium text-gray-400 transition hover:text-gray-900">Edit</button>
+                    )}
                   </li>
                 ))}
               </ul>
+              {!calendars.length && (
+                <p className="text-sm text-gray-400">No calendars yet.</p>
+              )}
+            </div>
+
+            {token ? (
+              <div className="rounded-2xl bg-gray-50 p-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-semibold text-gray-900">{editingCalendarId ? 'Edit calendar' : 'New calendar'}</p>
+                  {editingCalendarId && (
+                    <button type="button" onClick={resetCalendarForm} className="text-xs text-gray-400 hover:text-gray-700">Reset</button>
+                  )}
+                </div>
+                <form onSubmit={handleCalendarSubmit} className="mt-3 space-y-3">
+                  <div className="space-y-1">
+                    <label className="text-xs uppercase tracking-wider text-gray-400">Name</label>
+                    <input
+                      className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-gray-800 focus:outline-none"
+                      value={calendarForm.name}
+                      onChange={e=>setCalendarForm({...calendarForm, name:e.target.value})}
+                      placeholder="Project planning"
+                      disabled={calendarBusy}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs uppercase tracking-wider text-gray-400">Color</label>
+                    <input
+                      type="color"
+                      className="h-11 w-full cursor-pointer rounded-xl border border-gray-200"
+                      value={calendarForm.color}
+                      onChange={e=>setCalendarForm({...calendarForm, color:e.target.value})}
+                      disabled={calendarBusy}
+                    />
+                  </div>
+                  <button type="submit" className="w-full rounded-xl bg-gray-900 py-2 text-sm font-semibold text-white transition hover:bg-black disabled:opacity-50" disabled={calendarBusy}>
+                    {calendarBusy ? 'Saving…' : editingCalendarId ? 'Save changes' : 'Create calendar'}
+                  </button>
+                  {editingCalendarId && (
+                    <button type="button" onClick={()=>handleCalendarDelete(editingCalendarId)} className="w-full rounded-xl border border-gray-200 py-2 text-sm font-medium text-gray-600 transition hover:border-red-400 hover:text-red-500" disabled={calendarBusy}>
+                      Remove calendar
+                    </button>
+                  )}
+                </form>
+              </div>
             ) : (
-              <p className="text-sm text-gray-400">No upcoming events.</p>
+              <p className="text-sm text-gray-400">Log in to manage your calendars.</p>
             )}
+
+            <div className="space-y-3">
+              <h3 className="text-xs uppercase tracking-[0.35em] text-gray-400">Upcoming</h3>
+              {upcomingEvents.length ? (
+                <ul className="space-y-1.5">
+                  {upcomingEvents.map(event => (
+                    <li
+                      key={event.id}
+                      className="border border-transparent px-2 py-1.5 shadow-sm"
+                      style={{ background: buildEventGradient(event.color || getCalendarColor(event.calendarId)) }}
+                    >
+                      <div className="flex items-center gap-1.5">
+                        <input
+                          type="checkbox"
+                          className="h-4 w-4 rounded border-gray-300"
+                          checked={event.completed}
+                          disabled={updatingEventId === event.id}
+                          onClick={(e)=>e.stopPropagation()}
+                          onChange={(e)=>{
+                            e.stopPropagation()
+                            const details = {
+                              id: event.id,
+                              title: event.title,
+                              start: event.start,
+                              end: event.end,
+                              calendarId: event.calendarId
+                            }
+                            persistEventCompletion(details, e.target.checked)
+                          }}
+                        />
+                        <button
+                          type="button"
+                          className="flex flex-1 flex-col text-left"
+                          onClick={(e)=>{
+                            e.stopPropagation()
+                            openUpcomingEvent(event)
+                          }}
+                        >
+                          <span className={`text-sm font-semibold text-gray-800 ${event.completed ? 'line-through opacity-60' : ''}`}>{event.title}</span>
+                          <span className="mt-1 text-[10px] uppercase tracking-normal text-gray-500">{format(event.startDate, 'EEE d MMM · hh:mm a')}</span>
+                        </button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-sm text-gray-400">No upcoming events.</p>
+              )}
+            </div>
           </div>
         </aside>
 
-        <section className="flex-1 px-2 lg:flex-[4] lg:px-0 lg:pl-8">
-          <div className="flex flex-col gap-6">
+        <section className={`flex-1 px-2 lg:px-0 ${sidebarOpen ? 'lg:pl-8' : 'lg:pl-12'}`}>
+          <div className="mt-2 flex flex-col gap-6">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center gap-4">
                 <button onClick={handlePrev} className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-500 transition hover:bg-gray-900 hover:text-white" aria-label="Previous month">‹</button>
