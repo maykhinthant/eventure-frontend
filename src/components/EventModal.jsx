@@ -9,14 +9,14 @@ function toDateTimeLocal(value){
 }
 
 export default function EventModal({ open, onClose, initial, onSave, onDelete, calendars=[] }){
-  const [form, setForm] = useState({ title:'', description:'', start:'', end:'', calendarId: '', completed:false })
+  const [form, setForm] = useState({ title:'', start:'', end:'', calendarId: '', completed:false })
   useEffect(()=>{
     if(initial){
       const start = toDateTimeLocal(initial.start)
       const end = toDateTimeLocal(initial.end) || start
-      setForm({ title: initial.title || '', description: initial.description || '', start, end, calendarId: initial.calendarId || (calendars[0] && calendars[0].id) || '', completed: !!initial.completed })
+      setForm({ title: initial.title || '', start, end, calendarId: initial.calendarId || (calendars[0] && calendars[0].id) || '', completed: !!initial.completed })
     } else {
-      setForm({ title:'', description:'', start:'', end:'', calendarId: (calendars[0] && calendars[0].id) || '', completed:false })
+      setForm({ title:'', start:'', end:'', calendarId: (calendars[0] && calendars[0].id) || '', completed:false })
     }
   },[initial, open, calendars])
 
@@ -27,7 +27,6 @@ export default function EventModal({ open, onClose, initial, onSave, onDelete, c
         <h3 className="text-lg font-semibold mb-2">{initial ? 'Edit Event' : 'New Event'}</h3>
         <form onSubmit={(e)=>{ e.preventDefault(); onSave(form); }} className="space-y-3">
           <input className="w-full border p-2" placeholder="Title" value={form.title} onChange={e=>setForm({...form, title:e.target.value})} required />
-          <textarea className="w-full border p-2" placeholder="Description" value={form.description} onChange={e=>setForm({...form, description:e.target.value})} />
           <div className="grid grid-cols-2 gap-2">
             <input type="datetime-local" className="border p-2" value={form.start} onChange={e=>setForm({...form, start:e.target.value})} required />
             <input type="datetime-local" className="border p-2" value={form.end} onChange={e=>setForm({...form, end:e.target.value})} required />
