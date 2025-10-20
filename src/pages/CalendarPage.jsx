@@ -380,14 +380,14 @@ export default function CalendarPage(){
           <div>
             <h3 className="mb-3 text-xs uppercase tracking-[0.35em] text-gray-400">Upcoming</h3>
             {upcomingEvents.length ? (
-              <ul className="space-y-3">
+              <ul className="space-y-2">
                 {upcomingEvents.map(event => (
                   <li
                     key={event.id}
-                    className="border border-transparent p-2.5 shadow-sm"
+                    className="border border-transparent p-2 shadow-sm"
                     style={{ background: buildEventGradient(event.color || getCalendarColor(event.calendarId)) }}
                   >
-                    <label className="flex items-center gap-2">
+                    <div className="flex items-center gap-2">
                       <input
                         type="checkbox"
                         className="h-4 w-4 rounded border-gray-300"
@@ -406,11 +406,18 @@ export default function CalendarPage(){
                           persistEventCompletion(details, e.target.checked)
                         }}
                       />
-                      <div className="flex flex-col">
+                      <button
+                        type="button"
+                        className="flex flex-1 flex-col text-left"
+                        onClick={(e)=>{
+                          e.stopPropagation()
+                          openUpcomingEvent(event)
+                        }}
+                      >
                         <span className={`text-sm font-semibold text-gray-800 ${event.completed ? 'line-through opacity-60' : ''}`}>{event.title}</span>
                         <span className="mt-1 text-[10px] uppercase tracking-normal text-gray-500">{format(event.startDate, 'EEE d MMM · hh:mm a')}</span>
-                      </div>
-                    </label>
+                      </button>
+                    </div>
                   </li>
                 ))}
               </ul>
@@ -514,7 +521,7 @@ export default function CalendarPage(){
                       className={`w-full overflow-hidden shadow-sm ${completed ? 'opacity-60' : ''}`}
                       style={{ background: gradient }}
                     >
-                      <label className="flex w-full items-center gap-1.5 px-1.5 py-1">
+                      <div className="flex w-full items-center gap-1.5 px-1.5 py-1">
                         <input
                           type="checkbox"
                           className="h-4 w-4 rounded border-gray-300"
@@ -530,7 +537,7 @@ export default function CalendarPage(){
                           <span className={`truncate text-xs font-semibold text-gray-800 ${completed ? 'line-through' : ''}`}>{arg.event.title}</span>
                           {timeLabel ? <span className="text-[10px] uppercase tracking-normal text-gray-600">{timeLabel}</span> : null}
                         </div>
-                      </label>
+                      </div>
                     </div>
                   )
                 }}
