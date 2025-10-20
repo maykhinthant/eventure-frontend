@@ -255,7 +255,7 @@ export default function CalendarPage(){
       })
       .filter(Boolean)
       .sort((a, b) => a.startDate - b.startDate)
-      .filter(evt => evt.startDate >= now)
+      .filter(evt => evt.startDate >= now && !evt.completed)
       .slice(0, 5)
   }, [eventsForList])
 
