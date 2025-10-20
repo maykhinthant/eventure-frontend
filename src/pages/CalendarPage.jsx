@@ -380,14 +380,14 @@ export default function CalendarPage(){
           <div>
             <h3 className="mb-3 text-xs uppercase tracking-[0.35em] text-gray-400">Upcoming</h3>
             {upcomingEvents.length ? (
-              <ul className="space-y-2">
+              <ul className="space-y-1.5">
                 {upcomingEvents.map(event => (
                   <li
                     key={event.id}
-                    className="border border-transparent p-2 shadow-sm"
+                    className="border border-transparent px-2 py-1.5 shadow-sm"
                     style={{ background: buildEventGradient(event.color || getCalendarColor(event.calendarId)) }}
                   >
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5">
                       <input
                         type="checkbox"
                         className="h-4 w-4 rounded border-gray-300"
