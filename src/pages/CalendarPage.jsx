@@ -481,7 +481,7 @@ export default function CalendarPage(){
                   </button>
                 ))}
                 <button onClick={()=>{ setSelected(null); setModalOpen(true) }} className="ml-2 rounded-full bg-gray-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-black">New Event</button>
-              </div>
+               </div>
             </div>
 
             <div className="pt-4">

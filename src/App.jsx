@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import Navbar from './components/Navbar.jsx'
 import CalendarPage from './pages/CalendarPage.jsx'
 import Login from './pages/Login.jsx'
+import OAuthRedirect from './pages/OAuthRedirect.jsx'
 import Register from './pages/Register.jsx'
 import Home from './pages/Home.jsx'
 import Profile from './pages/Profile.jsx'
@@ -23,6 +24,7 @@ export default function App(){
           <Route path="/" element={<Home/>} />
           <Route path="/login" element={<Login/>} />
           <Route path="/register" element={<Register/>} />
+          <Route path="/oauth2/redirect" element={<OAuthRedirect/>} />
           <Route path="/profile" element={<PrivateRoute><Profile/></PrivateRoute>} />
           <Route path="/calendar" element={<PrivateRoute><CalendarPage/></PrivateRoute>} />
           <Route path="*" element={<Navigate to="/" replace />} />
