@@ -78,6 +78,48 @@ function formatEventTimeRange(startDate, endDate){
   return startText === endText ? startText : `${startText} – ${endText}`
 }
 
+function extractEventsPayload(payload){
+  if(!payload) return []
+  if(Array.isArray(payload)) return payload
+
+  const normalized = []
+  const candidateCollections = [
+    { key: 'events' },
+    { key: 'originalEvents', cloneFlag: false },
+    { key: 'originalEventList', cloneFlag: false },
+    { key: 'original', cloneFlag: false },
+    { key: 'clonedEvents', cloneFlag: true },
+    { key: 'cloneEvents', cloneFlag: true },
+    { key: 'clones', cloneFlag: true },
+    { key: 'expandedEvents' }
+  ]
+
+  candidateCollections.forEach(({ key, cloneFlag }) => {
+    const value = payload?.[key]
+    if(Array.isArray(value)){
+      if(typeof cloneFlag === 'boolean'){
+        normalized.push(...value.map(evt => ({ ...evt, __isClone: cloneFlag })))
+      } else {
+        normalized.push(...value)
+      }
+    }
+  })
+
+  if(!normalized.length && typeof payload === 'object'){
+    Object.values(payload).forEach(value => {
+      if(Array.isArray(value)){
+        normalized.push(...value)
+      }
+    })
+  }
+
+  if(!normalized.length && typeof payload === 'object'){
+    normalized.push(payload)
+  }
+
+  return normalized
+}
+
 export default function CalendarPage(){
   const { token } = useAuth()
   const calendarRef = useRef(null)
@@ -118,24 +160,38 @@ export default function CalendarPage(){
     try{
       const res = await apiGetEvents()
       console.log('API response:', res)
-      const items = (res.data || []).map(e => {
+      const payload = extractEventsPayload(res.data)
+      const items = (payload || []).map((e, index) => {
+        const resolvedId = e?.id ?? `event-${index}`
+        const potentialNumericId = Number(resolvedId)
+        const startValue = stringifyDate(e?.startTime || e?.start || e?.start_time)
+        const endValue = stringifyDate(e?.endTime || e?.end || e?.end_time)
+        const calendarIdFromEntity = e?.calendar ? String(e.calendar.id) : undefined
+        const fallbackCalendarId = e?.calendarId || e?.calendar_id
+        const calendarIdValue = calendarIdFromEntity ?? (fallbackCalendarId != null ? String(fallbackCalendarId) : (calendars[0] && calendars[0].id))
+        const cloneFlagFromPayload = Object.prototype.hasOwnProperty.call(e || {}, '__isClone') ? !!e.__isClone : undefined
+        const isSyntheticId = Number.isFinite(potentialNumericId) ? potentialNumericId < 0 : String(resolvedId).startsWith('clone-')
         // normalize server event into the shape the UI expects
         const raw = {
-          id: e.id,
-          title: e.title,
-          start: stringifyDate(e.startTime || e.start || e.start_time),
-          end: stringifyDate(e.endTime || e.end || e.end_time),
-          completed: !!e.completed,
+          id: resolvedId,
+          title: e?.title,
+          start: startValue,
+          end: endValue,
+          completed: !!e?.completed,
           // store calendarId as string for the modal select
-          calendarId: e.calendar ? String(e.calendar.id) : (calendars[0] && calendars[0].id)
+          calendarId: calendarIdValue,
+          recurrenceRule: e?.recurrenceRule || '',
+          isRecurring: !!e?.isRecurring,
+          isClone: cloneFlagFromPayload ?? isSyntheticId,
+          sourceEvent: e
         }
 
         // find matching calendar by id (numeric/string tolerant)
-        const cal = calendars.find(c => c.id == (e.calendar ? String(e.calendar.id) : raw.calendarId)) || calendars[0]
+        const cal = calendars.find(c => c.id == raw.calendarId) || calendars[0]
 
         return {
-          id: e.id,
-          title: e.title,
+          id: resolvedId,
+          title: e?.title,
           start: raw.start,
           end: raw.end,
           backgroundColor: cal?.color,
@@ -154,7 +210,8 @@ export default function CalendarPage(){
           end: raw.end || item.end,
           calendarId: raw.calendarId,
           completed: raw.completed,
-          color: item.backgroundColor
+          color: item.backgroundColor,
+          isClone: raw.isClone
         }
       })
       setEventsForList(listData)
@@ -162,7 +219,15 @@ export default function CalendarPage(){
   }, [calendars])
 
   function openNew(dateStr){
-    setSelected({ title:'', start: dateStr, end: dateStr, calendarId: calendars[0]?.id || '', completed:false })
+    setSelected({
+      title:'',
+      start: dateStr,
+      end: dateStr,
+      calendarId: calendars[0]?.id || '',
+      completed:false,
+      isRecurring:false,
+      recurrenceRule:''
+    })
     setModalOpen(true)
   }
 
@@ -176,12 +241,17 @@ export default function CalendarPage(){
       const numericCalendarId = calendarIdValue && !Number.isNaN(Number(calendarIdValue)) ? Number(calendarIdValue) : null
       const startTime = normalizeLocalDateTime(form.start) || form.start || null
       const endTime = normalizeLocalDateTime(form.end) || form.end || startTime
+      const repeatEnabled = !!form.repeatEnabled
+      const recurrenceRule = repeatEnabled ? form.recurrenceRule || null : null
+
       const payload = {
         title: form.title,
         // pass LocalDateTime-like strings; backend Jackson will parse them
         startTime,
         endTime,
         completed: !!form.completed,
+        isRecurring: repeatEnabled,
+        recurrenceRule,
         // set calendar object or null
         calendar: numericCalendarId ? { id: numericCalendarId } : null
       }
@@ -511,15 +581,24 @@ export default function CalendarPage(){
                   }
                 }}
                 dayCellContent={({ date, dayNumberText, view }) => {
+                  const isToday = isSameDay(date, new Date())
+                  const numberEl = (
+                    <span className={`text-sm font-medium ${isToday ? 'rounded-full bg-gray-900 px-2 py-1 text-white' : 'text-gray-500'}`}>
+                      {dayNumberText.replace('日', '')}
+                    </span>
+                  )
+
                   if (view.type === 'dayGridMonth'){
-                    return null
+                    return (
+                      <div className="flex justify-end p-1">
+                        {numberEl}
+                      </div>
+                    )
                   }
 
                   return (
                     <div className="flex justify-end">
-                      <span className={`text-sm font-medium ${isSameDay(date, new Date()) ? 'rounded-full bg-gray-900 px-2 py-1 text-white' : 'text-gray-500'}`}>
-                        {dayNumberText.replace('日', '')}
-                      </span>
+                      {numberEl}
                     </div>
                   )
                 }}
