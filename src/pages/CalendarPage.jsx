@@ -431,42 +431,44 @@ export default function CalendarPage(){
             </div>
 
             {token ? (
-              <div className="rounded-2xl bg-gray-50 p-4">
-                <div className="flex items-center justify-between">
+              <div className="rounded-xl bg-gray-50 p-3">
+                <div className="flex items-center justify-between mb-2">
                   <p className="text-sm font-semibold text-gray-900">{editingCalendarId ? 'Edit calendar' : 'New calendar'}</p>
                   {editingCalendarId && (
                     <button type="button" onClick={resetCalendarForm} className="text-xs text-gray-400 hover:text-gray-700">Reset</button>
                   )}
                 </div>
-                <form onSubmit={handleCalendarSubmit} className="mt-3 space-y-3">
-                  <div className="space-y-1">
-                    <label className="text-xs uppercase tracking-wider text-gray-400">Name</label>
-                    <input
-                      className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-gray-800 focus:outline-none"
-                      value={calendarForm.name}
-                      onChange={e=>setCalendarForm({...calendarForm, name:e.target.value})}
-                      placeholder="Project planning"
-                      disabled={calendarBusy}
-                    />
+                <form onSubmit={handleCalendarSubmit} className="space-y-2">
+                  <div className="flex gap-2 items-center">
+                    <div className="flex-1">
+                      <input
+                        className="w-full rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-sm text-gray-900 focus:border-gray-800 focus:outline-none"
+                        value={calendarForm.name}
+                        onChange={e=>setCalendarForm({...calendarForm, name:e.target.value})}
+                        placeholder="Calendar name"
+                        disabled={calendarBusy}
+                      />
+                    </div>
+                    <div className="flex-shrink-0">
+                      <input
+                        type="color"
+                        className="h-8 w-8 cursor-pointer rounded border border-gray-200 bg-white p-0.5"
+                        value={calendarForm.color}
+                        onChange={e=>setCalendarForm({...calendarForm, color:e.target.value})}
+                        disabled={calendarBusy}
+                      />
+                    </div>
                   </div>
-                  <div className="space-y-1">
-                    <label className="text-xs uppercase tracking-wider text-gray-400">Color</label>
-                    <input
-                      type="color"
-                      className="h-11 w-full cursor-pointer rounded-xl border border-gray-200"
-                      value={calendarForm.color}
-                      onChange={e=>setCalendarForm({...calendarForm, color:e.target.value})}
-                      disabled={calendarBusy}
-                    />
-                  </div>
-                  <button type="submit" className="w-full rounded-xl bg-gray-900 py-2 text-sm font-semibold text-white transition hover:bg-black disabled:opacity-50" disabled={calendarBusy}>
-                    {calendarBusy ? 'Saving…' : editingCalendarId ? 'Save changes' : 'Create calendar'}
-                  </button>
-                  {editingCalendarId && (
-                    <button type="button" onClick={()=>handleCalendarDelete(editingCalendarId)} className="w-full rounded-xl border border-gray-200 py-2 text-sm font-medium text-gray-600 transition hover:border-red-400 hover:text-red-500" disabled={calendarBusy}>
-                      Remove calendar
+                  <div className="flex gap-2">
+                    <button type="submit" className="flex-1 rounded-lg bg-gray-900 py-1.5 text-sm font-semibold text-white transition hover:bg-black disabled:opacity-50" disabled={calendarBusy}>
+                      {calendarBusy ? 'Saving…' : 'Save'}
                     </button>
-                  )}
+                    {editingCalendarId && (
+                      <button type="button" onClick={()=>handleCalendarDelete(editingCalendarId)} className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-medium text-gray-600 transition hover:border-red-400 hover:text-red-500" disabled={calendarBusy}>
+                        Delete
+                      </button>
+                    )}
+                  </div>
                 </form>
               </div>
             ) : (
